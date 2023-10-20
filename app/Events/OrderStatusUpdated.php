@@ -20,6 +20,10 @@ class OrderStatusUpdated implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
+    // public function __construct(public $order)
+    // {
+
+    // }
     public function __construct()
     {
         //
