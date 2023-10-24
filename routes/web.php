@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Task;
+use App\Events\TaskCreatedEvent;
 use App\Events\OrderStatusUpdated;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +22,7 @@ class Order {
 
 Route::get('/', function () {
 //    OrderStatusUpdated::dispatch(); //event(new OrderStatusUpdated());
-//    OrderStatusUpdated::dispatch(new Order(1, 599)); //event(new OrderStatusUpdated(new Order(1, 599)));
+   OrderStatusUpdated::dispatch(new Order(1, 599)); //event(new OrderStatusUpdated(new Order(1, 599)));
 
     return view('welcome');
 });
@@ -28,3 +30,20 @@ Route::get('/', function () {
 Route::get('/update', function() {
     OrderStatusUpdated::dispatch(new Order(1, 599)); //event(new OrderStatusUpdated());
 });
+
+Route::get('/tasks', function() {
+
+    $tasks = Task::latest()->pluck('body');
+    
+    return view('task', compact('tasks'));
+});
+
+Route::post('/tasks', function() {
+    $task = Task::forceCreate(request(['body']));
+    
+    event(
+        (new TaskCreatedEvent($task->body))->dontBroadcastToCurrentUser()
+    );
+    
+    return response()->json($task->body);
+})->name('task.create');
