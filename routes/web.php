@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Task;
+use App\Models\Project;
 use App\Events\TaskCreatedEvent;
 use App\Events\OrderStatusUpdated;
 use Illuminate\Support\Facades\Route;
@@ -47,3 +48,17 @@ Route::post('/tasks', function() {
     
     return response()->json($task->body);
 })->name('task.create');
+
+Route::get('/projects/{project}', function(Project $project) {
+    $project->load('tasks');
+
+    return view('project', compact('project'));
+});
+
+Route::post('/projects/{project}', function(Project $project) {
+    $task = $project->tasks()->create(request(['body']));
+    
+    event( new TaskCreatedEvent($task) );
+
+    return response()->json($task->body);
+})->name('project.task.create');
