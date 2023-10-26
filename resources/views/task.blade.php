@@ -31,7 +31,7 @@
 			<ul id="taskList">
 				@foreach ($tasks as $task)
 					<li>
-						<h5 class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ $task }}</h5>
+						<h5 class="mt-1 text-xl font-semibold text-gray-900">{{ $task }}</h5>
 					</li>
 				@endforeach
 			</ul>
@@ -55,7 +55,7 @@
 					success: function(response) {
 						$('#body').val("");
 
-						$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900 dark:text-white'>"+ response +"</h5></li>" );
+						$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ response +"</h5></li>" );
 					},
 					error: function(jqXHR, textStatus, errorThrown) {
 						console.log(errorThrown);
@@ -64,7 +64,7 @@
 			} );
 		
 			window.Echo.channel('task-created').listen('TaskCreatedEvent', e => {
-				$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900 dark:text-white'>"+ e.task +"</h5></li>" );
+				$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ e.task +"</h5></li>" );
 			})
 		});
 	</script>
