@@ -18,7 +18,7 @@ class TaskCreatedEvent implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public $task)
+    public function __construct(public Task $task)
     {
         $this->dontBroadcastToCurrentUser();
     }
@@ -31,7 +31,7 @@ class TaskCreatedEvent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('tasks.'.$this->task->project_id)
+            new PrivateChannel('tasks.' . $this->task->project_id)
         ];
     }
 }

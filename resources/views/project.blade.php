@@ -36,40 +36,40 @@
 				@endforeach
 			</ul>
 		</div>
+
+		<script>
+			$(document).ready( function() {
+				let project_id = @json($project->id);
+				let url = "{{ route('project.task.create', ":project_id" ) }}";
+				url = url.replace(':project_id', project_id);
+
+				$("#taskSubmit").on( "click", function(e) {
+					e.preventDefault();
+					
+					let body = $('#body').val();
+
+					$.ajax({
+						url:url,
+						method:'POST',
+						data:{ 'body' : body },
+						headers: {
+							'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+						},
+						success: function(response) {
+							$('#body').val("");
+
+							$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ response +"</h5></li>" );
+						},
+						error: function(jqXHR, textStatus, errorThrown) {
+							console.log(errorThrown);
+						}
+					});
+				} );
+			
+				window.Echo.private('tasks.'+project_id).listen('TaskCreatedEvent', ({task}) => {
+					$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ task.body +"</h5></li>" );
+				})
+			});
+		</script>
     </body>
-	
-	<script>
-		$(document).ready( function() {
-			let project_id = @json($project->id);
-			let url = "{{ route('project.task.create', ":project_id" ) }}";
-			url = url.replace(':project_id', project_id);
-
-			$("#taskSubmit").on( "click", function(e) {
-				e.preventDefault();
-				
-				let body = $('#body').val();
-
-				$.ajax({
-					url:url,
-					method:'POST',
-					data:{ 'body' : body },
-					headers: {
-						'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-					},
-					success: function(response) {
-						$('#body').val("");
-
-						$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900 dark:text-white'>"+ response +"</h5></li>" );
-					},
-					error: function(jqXHR, textStatus, errorThrown) {
-						console.log(errorThrown);
-					}
-				});
-			} );
-		
-			window.Echo.channel('tasks.'+project_id).listen('TaskCreatedEvent', ({task}) => {
-				$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900 dark:text-white'>"+ task.body +"</h5></li>" );
-			})
-		});
-	</script>
 </html>
