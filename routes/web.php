@@ -1,8 +1,6 @@
 <?php
 
-use App\Models\Task;
-use App\Events\TaskCreatedEvent;
-use App\Events\OrderStatusUpdated;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,34 +14,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-class Order {
-    public function __construct(public int $id, public int $amount) {}
-}
-
 Route::get('/', function () {
-//    OrderStatusUpdated::dispatch(); //event(new OrderStatusUpdated());
-   OrderStatusUpdated::dispatch(new Order(1, 599)); //event(new OrderStatusUpdated(new Order(1, 599)));
-
     return view('welcome');
 });
 
-Route::get('/update', function() {
-    OrderStatusUpdated::dispatch(new Order(1, 599)); //event(new OrderStatusUpdated());
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/tasks', function() {
-
-    $tasks = Task::latest()->pluck('body');
-    
-    return view('task', compact('tasks'));
-});
-
-Route::post('/tasks', function() {
-    $task = Task::forceCreate(request(['body']));
-    
-    event(
-        (new TaskCreatedEvent($task->body))->dontBroadcastToCurrentUser()
-    );
-    
-    return response()->json($task->body);
-})->name('task.create');
+require __DIR__.'/auth.php';
