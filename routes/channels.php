@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Project;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -13,6 +14,19 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('tasks.{project}', function ($user, Project $project) {
+
+    return $project->participants->contains($user);
+
+    // $canAccess = [];
+
+    // if($user->email === 'sanjay@echo.com') {
+    //     $canAccess = [1, 3];
+    // }
+
+    // if($user->email === 'parvti@echo.com') {
+    //     $canAccess = [2, 4];
+    // }
+
+    // return in_array($projectId, $canAccess);
 });
