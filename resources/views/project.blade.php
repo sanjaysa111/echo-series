@@ -17,6 +17,9 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
 		<script src="https://code.jquery.com/jquery-3.1.1.min.js">
 		@vite(['resources/js/app.js'])
+		<script>
+			var user = @json(auth()->user());
+		</script>
     </head>
     <body class="container">
 		<div>
@@ -25,6 +28,7 @@
 				<div class="form-group">
 					<label>Tasks</label>
 					<input type="text" class="form-control" name="body" id="body" placeholder="Enter task">
+					<span id="activePeer"></span>
 				</div>
 				<button type="submit" class="btn btn-primary" id="taskSubmit" >Submit</button>
 			</form>
@@ -39,6 +43,7 @@
 
 		<script>
 			$(document).ready( function() {
+				let typingTimmer = false;
 				let project_id = @json($project->id);
 				let url = "{{ route('project.task.create', ":project_id" ) }}";
 				url = url.replace(':project_id', project_id);
@@ -66,8 +71,26 @@
 					});
 				} );
 			
-				window.Echo.private('tasks.'+project_id).listen('TaskCreatedEvent', ({task}) => {
+				window.Echo.private('tasks.'+project_id)
+				.listen('TaskCreatedEvent', ({task}) => {
 					$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ task.body +"</h5></li>" );
+				})
+				.listenForWhisper("typing", (e) => {
+					$("#activePeer").html(e.name + " is typing...");
+
+					if(typingTimmer) clearTimeout(typingTimmer);
+					
+					typingTimmer = setTimeout(() => {
+						$('#activePeer').empty();	
+					}, 3000);
+
+				});
+
+				$('#body').keydown(function() {
+					window.Echo.private('tasks.'+project_id)
+					.whisper("typing", {
+						name:user.name
+					});
 				})
 			});
 		</script>
