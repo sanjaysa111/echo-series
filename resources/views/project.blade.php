@@ -22,23 +22,31 @@
 		</script>
     </head>
     <body class="container">
-		<div>
-			<form method="post" action="#">
-				@csrf
-				<div class="form-group">
-					<label>Tasks</label>
-					<input type="text" class="form-control" name="body" id="body" placeholder="Enter task">
-					<span id="activePeer"></span>
-				</div>
-				<button type="submit" class="btn btn-primary" id="taskSubmit" >Submit</button>
-			</form>
-			<ul id="taskList">
-				@foreach ($project->tasks as $task)
-					<li>
-						<h5 class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ $task->body }}</h5>
-					</li>
-				@endforeach
-			</ul>
+		<div class="row">
+			<div class="col-md-8">
+				<form method="post" action="#">
+					@csrf
+					<div class="form-group">
+						<label>Tasks</label>
+						<input type="text" class="form-control" name="body" id="body" placeholder="Enter task">
+						<span id="activePeer"></span>
+					</div>
+					<button type="submit" class="btn btn-primary" id="taskSubmit" >Submit</button>
+				</form>
+				<ul id="taskList">
+					@foreach ($project->tasks as $task)
+						<li>
+							<h5 class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ $task->body }}</h5>
+						</li>
+					@endforeach
+				</ul>
+			</div>
+			<div class="col-md-4 mt-4">
+				<h5>
+					Active Participants
+				</h5>
+				<ul class="mt-3" id="activeParticipants"></ul>
+			</div>
 		</div>
 
 		<script>
@@ -60,18 +68,29 @@
 						headers: {
 							'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
 						},
-						success: function(response) {
+						success: function(body) {
 							$('#body').val("");
 
-							$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ response +"</h5></li>" );
+							$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ body +"</h5></li>" );
 						},
 						error: function(jqXHR, textStatus, errorThrown) {
 							console.log(errorThrown);
 						}
 					});
 				} );
-			
-				window.Echo.private('tasks.'+project_id)
+
+				window.Echo.join('tasks.'+project_id)
+				.here(users => {
+					users.forEach(user => {
+						$('#activeParticipants').prepend("<li id="+user.id+'_'+user.name+"><h5>"+ user.name +"</h5 ></li>")
+					});
+				})
+				.joining(user => {
+					$('#activeParticipants').append("<li id="+user.id+'_'+user.name+"><h5>"+ user.name +"</h5 ></li>")
+				})
+				.leaving(user => {
+					$('#'+user.id+'_'+user.name).remove();
+				})
 				.listen('TaskCreatedEvent', ({task}) => {
 					$( "#taskList" ).prepend ( "<li><h5 class='mt-1 text-xl font-semibold text-gray-900'>"+ task.body +"</h5></li>" );
 				})
@@ -87,7 +106,7 @@
 				});
 
 				$('#body').keydown(function() {
-					window.Echo.private('tasks.'+project_id)
+					window.Echo.join('tasks.'+project_id)
 					.whisper("typing", {
 						name:user.name
 					});
